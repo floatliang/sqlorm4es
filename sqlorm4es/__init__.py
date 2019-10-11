@@ -5,9 +5,9 @@
 
 __version__ = '1.1.0'
 
-from datalab.db.es.orm.model import BaseModel
-from datalab.db.es.orm.field import *
-from datalab.db.es.orm.sql import SelectSQL, InsertSQL, UpdateSQL, DeleteSQL
-from datalab.db.es.orm.compiler import QueryCompiler
-from datalab.db.es.orm.query import *
-from datalab.db.es.orm.epool import DBPool
+from .model import BaseModel
+from .field import *
+from .sql import SelectSQL, InsertSQL, UpdateSQL, DeleteSQL
+from .compiler import QueryCompiler
+from .query import *
+from .epool import DBPool

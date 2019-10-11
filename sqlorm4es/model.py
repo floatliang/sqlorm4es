@@ -5,10 +5,10 @@
 from six import add_metaclass
 from copy import copy, deepcopy
 
-from datalab.db.es.orm.epool import POOL
-from datalab.db.es.orm.sql import SelectSQL, InsertSQL, DeleteSQL, UpdateSQL
-from datalab.db.es.orm.field import Field, FieldDescriptor
-from datalab.db.es.orm.utils import result_wrapper
+from .epool import POOL
+from .sql import SelectSQL, InsertSQL, DeleteSQL, UpdateSQL
+from .field import Field, FieldDescriptor
+from .utils import result_wrapper
 
 
 class ModelOptions(object):

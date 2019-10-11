@@ -5,8 +5,8 @@
 import re
 from functools import partial
 
-from datalab.db.es.orm.field import OP, Expr, Field
-from datalab.db.es.orm.query import Q
+from .field import OP, Expr, Field
+from .query import Q
 
 
 def f_add(a, b):

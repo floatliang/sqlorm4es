@@ -5,10 +5,10 @@
 import re
 from copy import deepcopy
 
-from datalab.db.es.orm.epool import POOL
-from datalab.db.es.orm.compiler import QueryCompiler
-from datalab.db.es.orm.field import Expr, Field, OP_DICT
-from datalab.db.es.orm.utils import result_wrapper
+from .epool import POOL
+from .compiler import QueryCompiler
+from .field import Expr, Field, OP_DICT
+from .utils import result_wrapper
 
 _WHERE_PATTERN = re.compile(r'^\s*(?P<lhs>\S+)\s*(?P<op>(=|!=|<>|>=|<=|>|<|in|IN|LIKE|like))\s*(?P<rhs>\S+)\s*$')
 _AGG_PATTERN = re.compile(

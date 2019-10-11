@@ -2,9 +2,9 @@
 # @Time    : 2019/10/9 23:03
 # @Author  : floatsliang
 # @File    : test_compiler.py
-from datalab.db.es.orm.compiler import QueryCompiler
-from datalab.db.es.orm.field import *
-from datalab.db.es.orm.model import BaseModel
+from sqlorm4es.compiler import QueryCompiler
+from sqlorm4es.field import *
+from sqlorm4es.model import BaseModel
 
 
 class LogCenter(BaseModel):

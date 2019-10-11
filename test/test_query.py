@@ -2,7 +2,7 @@
 # @Time    : 2019/10/9 20:48
 # @Author  : floatsliang
 # @File    : test_query.py
-from datalab.db.es.orm.query import *
+from sqlorm4es.query import *
 
 query = {
     "query": {

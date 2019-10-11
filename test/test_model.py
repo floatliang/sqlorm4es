@@ -2,8 +2,8 @@
 # @Time    : 2019/10/9 17:49
 # @Author  : floatsliang
 # @File    : test_model.py
-from datalab.db.es.orm.model import BaseModel
-from datalab.db.es.orm.field import Field, Integer, Text, Date, Boolean, Float, Object, FieldDescriptor
+from sqlorm4es.model import BaseModel
+from sqlorm4es.field import Field, Integer, Text, Date, Boolean, Float, Object, FieldDescriptor
 
 
 def test_generate_model():
