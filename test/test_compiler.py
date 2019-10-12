@@ -31,7 +31,7 @@ class LogCenter(BaseModel):
 sql = {
     'fields': [LogCenter.ok, LogCenter.lineno, 'test', 'max(lineno)', LogCenter.timestamp],
     'where': ((LogCenter.ok == 'false') & (LogCenter.message != 'dfdf')) | (LogCenter.timestamp >= '2017-10-12') | (
-                LogCenter.bigbrother.head >> ' ( dfd; df ) '),
+                LogCenter.bigbrother.head >> ' ( 12; 45 ) '),
     'join': None,
     'group_by': [LogCenter.timestamp],
     'order_by': {'lineno': 'desc', 'timestamp': 'asc'},
@@ -112,7 +112,6 @@ def test_parse_order_by():
 
 def test_parse_select_sql():
     q = parser.parse_select_sql()
-    print(q)
     expected_aggs = {
         'group_by_timestamp': {
             'terms': {

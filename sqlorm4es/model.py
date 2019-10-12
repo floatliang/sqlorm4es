@@ -27,9 +27,9 @@ class ModelMeta(type):
 
         for b in bases:
             if hasattr(b, '_data'):
-                for name, attr in b.__dict__.items():
-                    if isinstance(attr, FieldDescriptor) and name not in attrs:
-                        attrs[name] = deepcopy(attr)
+                for attr_name, attr in b.__dict__.items():
+                    if isinstance(attr, FieldDescriptor) and attr_name not in attrs:
+                        attrs[attr_name] = deepcopy(attr)
 
         cls = super(ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         cls._meta = ModelOptions(name, bases, attrs)
@@ -42,6 +42,7 @@ class ModelMeta(type):
                     attr.set_name(name)
                 field_desc = FieldDescriptor(attr)
                 setattr(cls, name, field_desc)
+                attr = field_desc
             if isinstance(attr, FieldDescriptor):
                 if attr.field.default:
                     cls._data[name] = attr.field.default
@@ -70,13 +71,11 @@ class BaseModel(object):
     def database(self, database):
         self._meta.database = database
 
-    @classmethod
-    def get_index(cls):
-        return cls._meta.index
+    def get_index(self):
+        return self._meta.index
 
-    @classmethod
-    def get_database(cls):
-        return cls._meta.database
+    def get_database(self):
+        return self._meta.database
 
     @classmethod
     def select(cls, *fields):

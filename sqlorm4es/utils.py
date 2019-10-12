@@ -8,7 +8,7 @@ from copy import deepcopy
 
 class SearchResult(dict):
 
-    def __init__(self, res: dict=None):
+    def __init__(self, res: dict = None):
         super(SearchResult, self).__init__(data=[], meta={
             'count': 0,
             'status': 200,
@@ -17,7 +17,7 @@ class SearchResult(dict):
         if res:
             self.init(res)
 
-    def init(self, res :dict):
+    def init(self, res: dict):
         if 'hits' in res:
             self['data'] = res['hits']['hits']
             self['meta']['count'] = res['hits']['total']['value']

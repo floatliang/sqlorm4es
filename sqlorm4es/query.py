@@ -45,7 +45,7 @@ def Q(name_or_query=None, *args, **kwargs):
             raise ValueError(u'ERROR: dict type name_or_query length should be 1')
         clazz_name, params = name_or_query.popitem()
         kwargs['q'] = params
-    elif name_or_query in _clazz_dict:
+    elif name_or_query.lower() in _clazz_dict:
         clazz_name = name_or_query.lower()
     else:
         raise NotImplementedError(u'ERROR: {} leaf field is not implemented yet'.format(name_or_query))
@@ -166,6 +166,7 @@ class Match(Base):
 
     def with_query(self, query):
         self._work_dir['query'] = query
+        return self
 
     def with_analyzer(self, analyzer: str = "standard"):
         analyzer = '{}'.format(analyzer)
@@ -371,7 +372,7 @@ class Bool(Base):
         self._debug = kwargs.get('debug', False)
         scoring = kwargs.get('scoring', False)
         if q:
-            kwargs = self._validate_query_field(q, kwargs.get('copied', False))
+            kwargs = self._validate_query_field(q, kwargs.get('copied', True))
         self['bool'] = {}
         if scoring:
             self['bool']['filter'] = {
@@ -599,9 +600,9 @@ class Dsl(Base):
             raise InvalidVersionError(u'ERROR: ES version {} not supported'.format(version))
 
         if q:
-            kwargs = self._validate_query_field(q)
+            kwargs = self._validate_query_field(q, copied=True)
         kwargs['scoring'] = scoring
-        kwargs['copied'] = True
+        kwargs['copied'] = False
         if 'from' in kwargs:
             kwargs['offset'] = kwargs['from']
             del kwargs['from']

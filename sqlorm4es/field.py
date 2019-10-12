@@ -104,21 +104,20 @@ class FieldDescriptor(object):
         return self.field
 
     def __set__(self, instance, value):
-        if instance:
-            value = self.field.validate(value)
-            if self.att_name in instance._data:
-                prev_val = instance._data[self.att_name]
-                if self.field.multi:
-                    if isinstance(prev_val, list) or isinstance(prev_val, tuple):
-                        prev_val = list(prev_val)
-                    else:
-                        prev_val = [prev_val]
-                    prev_val.append(value)
+        value = self.field.validate(value)
+        if self.att_name in instance._data:
+            prev_val = instance._data[self.att_name]
+            if self.field.multi:
+                if isinstance(prev_val, list) or isinstance(prev_val, tuple):
+                    prev_val = list(prev_val)
                 else:
-                    prev_val = value
-                instance._data[self.att_name] = prev_val
+                    prev_val = [prev_val]
+                prev_val.append(value)
             else:
-                instance._data[self.att_name] = value
+                prev_val = value
+            instance._data[self.att_name] = prev_val
+        else:
+            instance._data[self.att_name] = value
 
 
 class Field(Node):
@@ -242,7 +241,7 @@ class Object(Field):
         validate_dict = {}
         for name, field in self._fields.items():
             if name in value_dict:
-                validate_dict[name] = field.validate(validate_dict[name])
+                validate_dict[name] = field.validate(value_dict[name])
             else:
                 if field.default:
                     validate_dict[name] = field.default

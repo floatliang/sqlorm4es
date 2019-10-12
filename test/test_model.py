@@ -32,20 +32,21 @@ def test_generate_model():
 
         es_version = Float(default=6.2)
 
-    LogCenter.ok = 1
-
-    assert LogCenter.get_index() == 'lala'
-    assert LogCenter.get_database() == {
+    assert LogCenter._meta.index == 'lala'
+    assert LogCenter._meta.database == {
             "host": "122.23.2.23"
         }
-    assert not LogCenter._data
+    assert LogCenter._data == {
+        'ok': 'true',
+        'message': 'xixi'
+    }
     assert len(LogCenter._fields) == 5
-    for name, field in LogCenter._fields:
-        assert isinstance(field, FieldDescriptor), 'Field not converted to descriptor'
+    for name, field in LogCenter._fields.items():
+        assert isinstance(field, FieldDescriptor), 'Field {} not converted to descriptor'.format(name)
         assert isinstance(getattr(LogCenter, name), Field)
 
-    assert LogCenterES.get_index() == 'LogCenterES'
-    assert LogCenterES.get_database() == {}
+    assert LogCenterES._meta.index == 'LogCenterES'
+    assert LogCenterES._meta.database == {}
     assert len(LogCenterES._fields) == 6, 'Model inherit Field failed'
 
 
@@ -63,8 +64,8 @@ def test_instantiate_model():
             }
         )
 
-    assert SomeLog.get_index() == 'SomeLog'
-    assert SomeLog.get_database() == {}
+    assert SomeLog._meta.index == 'SomeLog'
+    assert SomeLog._meta.database == {}
     assert SomeLog._data == {
         'log_name': 'some_log',
         'log_type': {
@@ -79,8 +80,10 @@ def test_instantiate_model():
         'ok': 'true'
     })
     assert new_log._data is not SomeLog._data
-    assert new_log.get_index() != SomeLog.get_index()
-    assert new_log.get_database() != SomeLog.get_database()
+    assert new_log.get_index() == 'NotSomeLog'
+    assert new_log.get_database() == {
+        'host': '127.0.0.1'
+    }
     assert new_log._data == {
         'log_name': 'error_log',
         'log_type': {

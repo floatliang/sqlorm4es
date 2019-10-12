@@ -2,18 +2,18 @@
 # @Time    : 2019/10/11 22:57
 # @Author  : floatsliang
 # @File    : setup.py
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='sqlorm4es',
     version=__import__('sqlorm4es').__version__,
     description='A simple, expressive elasticsearch orm',
-    py_modules=["sqlorm4es"],
+    packages=find_packages(exclude=['test']),
     url='https://github.com/floatliang/sqlorm4es',
     author='floatsliang',
     author_email='utavianus@qq.com',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'License :: OSI Approved :: MIT License',
@@ -26,8 +26,10 @@ setup(
     ],
     keywords='sql orm elasticsearch',
     install_requires=[
-        'elasticsearch' >= '6.3.1',
-        'python-dateutil' >= '2.5.0',
-        'six' >= '1.10.0'
+        'elasticsearch >= 6.3.1',
+        'python-dateutil >= 2.5.0',
+        'six >= 1.10.0'
     ],
+    zip_safe=False,
+    platforms=['any'],
 )

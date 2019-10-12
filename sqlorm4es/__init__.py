@@ -3,7 +3,7 @@
 # @Author  : floatsliang
 # @File    : __init__.py.py
 
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 from .model import BaseModel
 from .field import *

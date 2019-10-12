@@ -169,37 +169,49 @@ class QueryCompiler(object):
                 l_val, l_inv = self.parse_expr(leaf_node.lhs)
                 r_val, r_inv = self.parse_expr(leaf_node.rhs)
                 if isinstance(l_val, Field):
-                    field = l_val.get_name()
-                    val = field.validate(r_val)
-                    if callable(r_inv):
-                        val = r_inv(val)
+                    field = l_val
+                    field_name = field.get_name()
+                    val = r_val
+                    inv_val = l_inv
                 elif isinstance(r_val, Field):
-                    field = r_val.get_name()
-                    val = field.validate(l_val)
-                    if callable(l_inv):
-                        val = l_inv(val)
+                    field = r_val
+                    field_name = field.get_name()
+                    val = l_val
+                    inv_val = r_inv
                 elif isinstance(l_val, str) and isinstance(r_val, str):
                     field = l_val
+                    field_name = field
                     val = r_val
+                    inv_val = l_inv
                 else:
                     raise ValueError(
                         u'ERROR: left or right field of relation operation {} should be Field or str type'.format(op))
                 if op in (OP.OP_LTE, OP.OP_LT, OP.OP_GT, OP.OP_GTE):
-                    q = Q('range', field=field)
+                    q = Q('range', field=field_name)
                 elif op is OP.OP_EQ or op is OP.OP_NE:
-                    q = Q('term', field=field)
+                    q = Q('term', field=field_name)
                     if op is OP.OP_NE:
                         inv = True
                 elif op is OP.OP_IN:
                     if not isinstance(val, list) and not isinstance(val, tuple):
                         val = re.sub(r'\s*[()\[\]]\s*', '', val)
                         val = re.split(r'\s*[,;]\s*', val)
-                    q = Q('terms', field=field)
+                    q = Q('terms', field=field_name)
                     val = list(val)
                 elif op is OP.OP_LIKE:
                     raise NotImplementedError
                 else:
                     raise NotImplementedError
+                if hasattr(field, 'validate'):
+                    if isinstance(val, list):
+                        val = [field.validate(v) for v in val]
+                    else:
+                        val = field.validate(val)
+                if callable(inv_val):
+                    if isinstance(val, list):
+                        val = [inv_val(v) for v in val]
+                    else:
+                        val = inv_val(val)
                 self._op_to_func(q, op)(val)
 
                 return q, inv
