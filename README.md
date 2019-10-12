@@ -52,12 +52,12 @@ res = LogCenter.select('max(lineno)')\
 ```python
 new_log = LogCenter(ok=False, message='oops', timestamp='2019-10-10')
 new_log.bigbrother = {
-		"head": 'tough',
-		"hand": {
-			"finger": "long",
-			"nail": "clean"
-		}
-	}
+    "head": 'tough',
+    "hand": {
+        "finger": "long",
+        "nail": "clean"
+    }
+}
 ```
 * Create a single document:
 ```python
