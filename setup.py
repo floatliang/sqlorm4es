@@ -4,10 +4,14 @@
 # @File    : setup.py
 from setuptools import setup, find_packages
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 setup(
     name='sqlorm4es',
     version=__import__('sqlorm4es').__version__,
     description='A simple, expressive elasticsearch orm',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     packages=find_packages(exclude=['test']),
     url='https://github.com/floatliang/sqlorm4es',
     author='floatsliang',

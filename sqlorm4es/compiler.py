@@ -151,6 +151,9 @@ class QueryCompiler(object):
                 curr_node = curr_node.lhs
             else:
                 leaf, inv = self.parse_expr(curr_node)
+                if curr_query[1] is OP.OP_OR and inv is True:
+                    new_q = Q('bool')
+                    leaf = self._op_to_func(new_q, OP.OP_AND, inv)(leaf)
                 logical_func = self._op_to_func(curr_query[0], curr_query[1], inv)
                 logical_func(leaf)
                 if len(node_stack) == 0:

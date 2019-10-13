@@ -20,7 +20,7 @@ class LogCenter(BaseModel):
     message = Text(default='xixi')
     timestamp = Date(name="@timestamp", timezone="+8")
     bigbrother = Object(
-        head=Integer(),
+        head=Text(),
         hand=Object(
             finger=Float(),
             nail=Boolean()
