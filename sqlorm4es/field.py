@@ -204,10 +204,10 @@ class Date(Field):
         elif isinstance(value, date):
             value = self.validate(str(value))
         elif isinstance(value, int):
-            value = datetime.utcfromtimestamp(value / 1000.0)
+            value = datetime.utcfromtimestamp(value / 1000.0).replace(tzinfo=dt_tz.utc)
         else:
             raise ValueError('ERROR: Could not parse date from the value {}'.format(value))
-        return datetime.strftime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
+        return datetime.strftime(value, '%Y-%m-%dT%H:%M:%S.%f%z')
 
 
 class Object(Field):
