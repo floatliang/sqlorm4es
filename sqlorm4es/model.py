@@ -16,7 +16,7 @@ class ModelOptions(object):
     def __init__(self, name, bases, attrs):
         self.index = attrs.get('__index__', name)
         self.database = attrs.get('__database__', {})
-        self.doc_type = attrs.get('__doc_type__', '_doc')
+        self.doc_type = attrs.get('__doc_type__', None)
 
 
 class ModelMeta(type):
@@ -113,6 +113,8 @@ class BaseModel(object):
         return cls.get_many(fields=fields, index=index, where=where, database=database, **kwargs)
 
     def save(self):
-        pass
+        doc = self._data
+        insert_sql = InsertSQL(self).values(doc)
+        return insert_sql.execute()
 
 

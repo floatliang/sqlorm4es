@@ -65,5 +65,24 @@ new_log.save()
 ```
 * **Insert, Delete, Update and Index operation**: Coming soon...
 
+#### Install
+Sqlorm4es has been packaged to pypi, so just need one simple command to install it:
+```shell
+pip install sqlorm4es
+```
+
 #### Elasticsearch driver
 Sqlorm4es implemented a simple almost lock-free connection pool based on official Elasticsearch client. As it is lock-free, so i am not sure whether it is thread-safe, but it works fine under my own multi-thread tests :)
+* Note that if you did not set config of your model, it will use the default config as below:
+```python
+config = {
+    'hosts': ['127.0.0.1:9200'],
+    'maxsize': 20,
+    'sniff_on_start': False,
+    'sniff_on_connection_fail': False,
+    'sniff_timeout': .1,
+    'sniffer_timeout': None,
+    'retry_on_timeout': False,
+    'timeout': 60,
+}
+```

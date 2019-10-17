@@ -8,7 +8,7 @@ from copy import deepcopy
 from .epool import POOL
 from .compiler import QueryCompiler
 from .field import Expr, Field, OP_DICT
-from .utils import result_wrapper
+from .utils import result_wrapper, SearchResult
 
 _WHERE_PATTERN = re.compile(r'^\s*(?P<lhs>\S+)\s*(?P<op>(=|!=|<>|>=|<=|>|<|in|IN|LIKE|like))\s*(?P<rhs>\S+)\s*$')
 _AGG_PATTERN = re.compile(
@@ -20,9 +20,9 @@ def parse_where(node: str):
     match_where = _WHERE_PATTERN.match(node)
     if match_where:
         match_dict = match_where.groupdict()
-        if match_dict['op'] not in OP_DICT:
-            raise NotImplementedError(u'EEROR: {} operation not supported in str type'.format(match_dict['op']))
-        return Expr(match_dict['lhs'], OP_DICT[match_dict['op']], match_dict['rhs'])
+        if match_dict['op'].lower() not in OP_DICT:
+            raise NotImplementedError(u'ERROR: {} operation not supported in str type'.format(match_dict['op']))
+        return Expr(match_dict['lhs'], OP_DICT[match_dict['op'].lower()], match_dict['rhs'])
     return None
 
 
@@ -30,9 +30,9 @@ def parse_aggs(node: str):
     match_agg = _AGG_PATTERN.match(node)
     if match_agg:
         match_dict = match_agg.groupdict()
-        if match_dict['aggs'] not in OP_DICT:
-            raise NotImplementedError(u'EEROR: {} aggregation not supported yet'.format(match_dict['aggs']))
-        return Expr(match_dict['field'], OP_DICT[match_dict['aggs']], None)
+        if match_dict['aggs'].lower() not in OP_DICT:
+            raise NotImplementedError(u'ERROR: {} aggregation not supported yet'.format(match_dict['aggs']))
+        return Expr(match_dict['field'], OP_DICT[match_dict['aggs'].lower()], None)
     return None
 
 
@@ -52,19 +52,28 @@ class SQL(object):
     def __init__(self, model_clazz, *args, **kwargs):
         self._model_clazz = model_clazz
         if model_clazz:
-            self._index = model_clazz.get_index()
-            self._database = model_clazz.get_database()
+            meta = getattr(model_clazz, '_meta')
+            if meta:
+                self._index = getattr(meta, 'index', None)
+                self._database = getattr(meta, 'database', None)
+                self._doc_type = getattr(meta, 'doc_type', None)
         self._data['where'] = None
         self._index = kwargs.get('index', None) or self._index
         self._database = kwargs.get('database', None) or self._database
-        self._doc_type = '_doc'
+        self._doc_type = kwargs.get('doc_type', None) or self._doc_type
         self._compiler = QueryCompiler(self._data)
 
     def index(self, index):
         self._index = index
+        return self
 
     def database(self, database):
         self._database = database
+        return self
+
+    def doc_type(self, doc_type):
+        self._doc_type = doc_type
+        return self
 
     def clone(self):
         new_sql = self.__class__(self._model_clazz)
@@ -83,7 +92,7 @@ class SQL(object):
                 else:
                     raise ValueError(u'ERROR: node in where must be expression or str')
             if not node:
-                raise AttributeError(u'EEROR: node cannot be NoneType, it may caused by parse failure')
+                raise AttributeError(u'ERROR: node cannot be NoneType, it may caused by parse failure')
             if not self._data['where']:
                 self._data['where'] = node
             else:
@@ -102,7 +111,7 @@ class InsertSQL(SQL):
     def __init__(self, model_clazz, **kwargs):
         if not model_clazz:
             raise Exception(u'InsertSQL must have index Model')
-        self._data = {'id': None, 'values': [], 'columns': model_clazz._fields}
+        self._data = {'id': None, 'values': [], 'upsert': True, 'columns': model_clazz._fields}
         super(InsertSQL, self).__init__(model_clazz, **kwargs)
 
     def id(self, doc_id):
@@ -112,10 +121,14 @@ class InsertSQL(SQL):
     def values(self, rows):
         pass
 
+    def upsert(self, insert_on_conflict=True):
+        self._data['upsert'] = insert_on_conflict
+        return self
+
     def compile(self):
         pass
 
-    def execute(self):
+    def execute(self, ):
         pass
 
 
@@ -191,7 +204,6 @@ class SelectSQL(SQL):
     def compile(self):
         return self._compiler.compile()
 
-    @result_wrapper
     def paginate(self):
         """
         yield document according to your sql and order by field
@@ -199,9 +211,9 @@ class SelectSQL(SQL):
         """
         if not self._data['limit'] or not self._data['order_by']:
             raise Exception(u'ERROR: paginate need page length(limit) and order by field')
-        query = self.compile()
+        query = self.order_by(('_id', 'asc')).compile()
         database = POOL.connect(**self._database)
-        res = database.search(index=self._index, body=query, _doc_type=self._doc_type)
+        res = database.search(index=self._index, body=query, doc_type=self._doc_type)
         if 'hits' not in res:
             return
         res_data = res['hits']['hits']
@@ -209,13 +221,13 @@ class SelectSQL(SQL):
             return
         search_after_val = res_data[-1].get('sort', None)
         if search_after_val is None:
-            return res
+            return SearchResult(res)
         if 'from' in query:
             del query['from']
         query['search_after'] = search_after_val
         while 1:
-            yield res
-            res = database.search(index=self._index, body=query, _doc_type=self._doc_type)
+            yield SearchResult(res)
+            res = database.search(index=self._index, body=query, doc_type=self._doc_type)
             if 'hits' not in res:
                 return
             res_data = res['hits']['hits']
@@ -226,4 +238,7 @@ class SelectSQL(SQL):
     @result_wrapper
     def execute(self):
         query = self.compile()
-        return POOL.connnect(**self._database).search(index=self._index, body=query, _doc_type=self._doc_type)
+        kwargs = {}
+        if self._doc_type:
+            kwargs['doc_type'] = self._doc_type
+        return POOL.connect(**self._database).search(index=self._index, body=query, **kwargs)

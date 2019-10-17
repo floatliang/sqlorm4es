@@ -289,9 +289,10 @@ class QueryCompiler(object):
     def parse_select_sql(self):
         query = Q('dsl')
 
-        where_query = self.parse_where()
-        query.query(where_query)
-        self.parse_join(where_query)
+        if self._sql['where']:
+            where_query = self.parse_where()
+            query.query(where_query)
+            self.parse_join(where_query)
 
         _source_fields, _agg_fields_selection = self.parse_fields()
         _agg_fields_group_by = self.parse_group_by()
