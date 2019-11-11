@@ -84,7 +84,7 @@ class Base(dict):
         return copy.deepcopy(query) if copied else query
 
     def _get_and_set(self, field, default):
-        got = self.get(field, default)
+        got = self._work_dir.get(field, default)
         self._work_dir[field] = got
         return got
 

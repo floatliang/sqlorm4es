@@ -27,6 +27,7 @@ class OP:
     OP_NE = 13
     OP_IN = 14
     OP_LIKE = 15
+    OP_LIKE_ALL = 16
 
     OP_COUNT = 21
     OP_SUM = 22
@@ -38,9 +39,9 @@ class OP:
 OP_DICT = {
     '<>': OP.OP_NE, '=': OP.OP_EQ, '>': OP.OP_GT,
     '>=': OP.OP_GTE, '<': OP.OP_LT, '<=': OP.OP_LTE,
-    '!=': OP.OP_NE, 'in': OP.OP_IN, 'like': OP.OP_LIKE,
+    '!=': OP.OP_NE, 'in': OP.OP_IN, 'like': OP.OP_LIKE, 'like all': OP.OP_LIKE_ALL,
     'count': OP.OP_COUNT, 'sum': OP.OP_SUM, 'max': OP.OP_MAX,
-    'avg': OP.OP_MAX,
+    'avg': OP.OP_AVG,
 }
 
 
@@ -54,7 +55,6 @@ def _e(op, inv=False):
 
 
 class Node(object):
-
     __and__ = _e(OP.OP_AND)
     __or__ = _e(OP.OP_OR)
 

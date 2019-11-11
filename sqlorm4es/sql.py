@@ -10,7 +10,8 @@ from .compiler import QueryCompiler
 from .field import Expr, Field, OP_DICT
 from .utils import result_wrapper, SearchResult
 
-_WHERE_PATTERN = re.compile(r'^\s*(?P<lhs>\S+)\s*(?P<op>(=|!=|<>|>=|<=|>|<|in|IN|LIKE|like))\s*(?P<rhs>\S+)\s*$')
+_WHERE_PATTERN = re.compile(
+    r'^\s*(?P<lhs>\S+)\s*(?P<op>(=|!=|<>|>=|<=|>|<|in|IN|LIKE|like|LIKE ALL|like all))\s*(?P<rhs>\S+)\s*$')
 _AGG_PATTERN = re.compile(
     r'^\s*(?P<aggs>(count|COUNT|sum|SUM|max|MAX|min|MIN|avg|AVG|distinct|DISTINCT))\(\s*(?P<field>\S+)\s*\)\s*$')
 _ORDER_BY_PATTERN = re.compile(r'^\s*(?P<field>\S+),?(\s+(?P<order>(asc|ASC|desc|DESC)))?\s*$')

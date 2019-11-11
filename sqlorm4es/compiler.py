@@ -48,6 +48,7 @@ class QueryCompiler(object):
         OP.OP_NE,
         OP.OP_IN,
         OP.OP_LIKE,
+        OP.OP_LIKE_ALL
     }
 
     agg_op = {
@@ -97,6 +98,8 @@ class QueryCompiler(object):
             func = q.value
         elif op is OP.OP_IN:
             func = q.value
+        elif op is OP.OP_LIKE:
+            func = q.query
         elif op is OP.OP_ADD:
             func = f_add
         elif op is OP.OP_SUB:
@@ -201,8 +204,11 @@ class QueryCompiler(object):
                         val = re.split(r'\s*[,;]\s*', val)
                     q = Q('terms', field=field_name)
                     val = list(val)
-                elif op is OP.OP_LIKE:
-                    raise NotImplementedError
+                elif op is OP.OP_LIKE or op is OP.OP_LIKE_ALL:
+                    q = Q('match', field=field_name)
+                    if op is OP.OP_LIKE_ALL:
+                        q.operator('AND')
+                        op = OP.OP_LIKE
                 else:
                     raise NotImplementedError
                 if hasattr(field, 'validate'):
