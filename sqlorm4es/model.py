@@ -116,5 +116,3 @@ class BaseModel(object):
         doc = self._data
         insert_sql = InsertSQL(self).values(doc)
         return insert_sql.execute()
-
-

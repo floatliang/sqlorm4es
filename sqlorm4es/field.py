@@ -27,7 +27,10 @@ class OP:
     OP_NE = 13
     OP_IN = 14
     OP_LIKE = 15
-    OP_LIKE_ALL = 16
+    OP_NOT_LIKE = 16
+    OP_MATCH = 17
+    OP_NOT_MATCH = 18
+    OP_MATCH_ALL = 19
 
     OP_COUNT = 21
     OP_SUM = 22
@@ -39,9 +42,12 @@ class OP:
 OP_DICT = {
     '<>': OP.OP_NE, '=': OP.OP_EQ, '>': OP.OP_GT,
     '>=': OP.OP_GTE, '<': OP.OP_LT, '<=': OP.OP_LTE,
-    '!=': OP.OP_NE, 'in': OP.OP_IN, 'like': OP.OP_LIKE, 'like all': OP.OP_LIKE_ALL,
+    '!=': OP.OP_NE, 'in': OP.OP_IN, 'like': OP.OP_LIKE, 'LIKE': OP.OP_LIKE,
     'count': OP.OP_COUNT, 'sum': OP.OP_SUM, 'max': OP.OP_MAX,
-    'avg': OP.OP_AVG,
+    'avg': OP.OP_AVG, 'or': OP.OP_OR, 'OR': OP.OP_OR, 'and': OP.OP_AND,
+    'AND': OP.OP_AND, 'match': OP.OP_MATCH, 'matchall': OP.OP_MATCH_ALL,
+    'MATCH': OP.OP_MATCH, 'MATCHALL': OP.OP_MATCH_ALL, 'not match': OP.OP_NOT_MATCH,
+    'not like': OP.OP_NOT_LIKE, 'NOT LIKE': OP.OP_NOT_LIKE, 'NOT MATCH': OP.OP_NOT_MATCH
 }
 
 

@@ -48,7 +48,10 @@ class QueryCompiler(object):
         OP.OP_NE,
         OP.OP_IN,
         OP.OP_LIKE,
-        OP.OP_LIKE_ALL
+        OP.OP_NOT_LIKE,
+        OP.OP_MATCH,
+        OP.OP_NOT_MATCH,
+        OP.OP_MATCH_ALL,
     }
 
     agg_op = {
@@ -94,11 +97,11 @@ class QueryCompiler(object):
             func = q.gte
         elif op is OP.OP_EQ:
             func = q.value
-        elif op is OP.OP_NE:
-            func = q.value
         elif op is OP.OP_IN:
             func = q.value
         elif op is OP.OP_LIKE:
+            func = q.value
+        elif op is OP.OP_MATCH:
             func = q.query
         elif op is OP.OP_ADD:
             func = f_add
@@ -197,6 +200,7 @@ class QueryCompiler(object):
                 elif op is OP.OP_EQ or op is OP.OP_NE:
                     q = Q('term', field=field_name)
                     if op is OP.OP_NE:
+                        op = OP.OP_EQ
                         inv = True
                 elif op is OP.OP_IN:
                     if not isinstance(val, list) and not isinstance(val, tuple):
@@ -204,11 +208,18 @@ class QueryCompiler(object):
                         val = re.split(r'\s*[,;]\s*', val)
                     q = Q('terms', field=field_name)
                     val = list(val)
-                elif op is OP.OP_LIKE or op is OP.OP_LIKE_ALL:
-                    q = Q('match', field=field_name)
-                    if op is OP.OP_LIKE_ALL:
-                        q.operator('AND')
+                elif op is OP.OP_LIKE or op is OP.OP_NOT_LIKE:
+                    q = Q('wildcard', field=field_name)
+                    if op is OP.OP_NOT_LIKE:
                         op = OP.OP_LIKE
+                        inv = True
+                elif op in {OP.OP_MATCH, OP.OP_NOT_MATCH, OP.OP_MATCH_ALL}:
+                    q = Q('match', field=field_name)
+                    if op is OP.OP_NOT_MATCH:
+                        inv = True
+                    elif op is OP.OP_MATCH_ALL:
+                        q.operator('and')
+                    op = OP.OP_MATCH
                 else:
                     raise NotImplementedError
                 if hasattr(field, 'validate'):

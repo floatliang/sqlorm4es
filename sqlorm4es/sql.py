@@ -2,29 +2,66 @@
 # @Time    : 2019/10/4 18:22
 # @Author  : floatsliang
 # @File    : sql.py
+from typing import Union
 import re
 from copy import deepcopy
 
 from .epool import POOL
 from .compiler import QueryCompiler
-from .field import Expr, Field, OP_DICT
+from .field import Expr, Field, OP_DICT, OP
 from .utils import result_wrapper, SearchResult
 
 _WHERE_PATTERN = re.compile(
-    r'^\s*(?P<lhs>\S+)\s*(?P<op>(=|!=|<>|>=|<=|>|<|in|IN|LIKE|like|LIKE ALL|like all))\s*(?P<rhs>\S+)\s*$')
+    r'^\s*(?P<lhs>\S+)\s*(?P<op>(=|!=|<>|>=|<=|>|<|in|IN|LIKE|like|MATCH|match|MATCHALL|matchall))\s*(?P<rhs>\S+)\s*$')
 _AGG_PATTERN = re.compile(
     r'^\s*(?P<aggs>(count|COUNT|sum|SUM|max|MAX|min|MIN|avg|AVG|distinct|DISTINCT))\(\s*(?P<field>\S+)\s*\)\s*$')
 _ORDER_BY_PATTERN = re.compile(r'^\s*(?P<field>\S+),?(\s+(?P<order>(asc|ASC|desc|DESC)))?\s*$')
 
 
+def where_str_to_expr_dict(expr_str: str) -> dict:
+    expr_dict = {}
+    op_list = [' = ', ' != ', ' >= ', ' <= ', ' > ', ' < ', ' <> ', ' in ', ' not like ', ' like ', ' not match ',
+               ' match ', ' matchall ']
+    expr_str_lower = expr_str.lower()
+    for op in op_list:
+        op_idx = expr_str_lower.find(op)
+        if op_idx >= 0:
+            expr_dict['op'] = op.strip()
+            expr_dict['lhs'] = expr_str[:op_idx].strip()
+            expr_dict['rhs'] = expr_str[op_idx + len(op):].strip()
+            break
+    return expr_dict
+
+
 def parse_where(node: str):
-    match_where = _WHERE_PATTERN.match(node)
-    if match_where:
-        match_dict = match_where.groupdict()
+    match_dict = where_str_to_expr_dict(node)
+    if match_dict:
         if match_dict['op'].lower() not in OP_DICT:
             raise NotImplementedError(u'ERROR: {} operation not supported in str type'.format(match_dict['op']))
         return Expr(match_dict['lhs'], OP_DICT[match_dict['op'].lower()], match_dict['rhs'])
     return None
+
+
+def parse_where_tuple_expr(node: Union[tuple, list]):
+    field = node[0].strip()
+    op = node[1].lower().strip()
+    values = node[2]
+    if len(node) > 3:
+        rel_op = node[3].lower().strip()
+    else:
+        rel_op = 'and'
+
+    new_expr = None
+    if op not in OP_DICT:
+        raise NotImplementedError(u'ERROR: {} operation not supported in str type'.format(op))
+    if not isinstance(values, (tuple, list)):
+        values = [values]
+    for val in values:
+        if new_expr:
+            new_expr = Expr(new_expr, OP_DICT[rel_op], Expr(field, OP_DICT[op], val))
+        else:
+            new_expr = Expr(field, OP_DICT[op], val)
+    return new_expr
 
 
 def parse_aggs(node: str):
@@ -52,6 +89,9 @@ class SQL(object):
 
     def __init__(self, model_clazz, *args, **kwargs):
         self._model_clazz = model_clazz
+        self._index = None
+        self._database = None
+        self._doc_type = None
         if model_clazz:
             meta = getattr(model_clazz, '_meta')
             if meta:
@@ -90,6 +130,8 @@ class SQL(object):
             if not isinstance(node, Expr):
                 if isinstance(node, str):
                     node = parse_where(node)
+                elif isinstance(node, (tuple, list)):
+                    node = parse_where_tuple_expr(node)
                 else:
                     raise ValueError(u'ERROR: node in where must be expression or str')
             if not node:

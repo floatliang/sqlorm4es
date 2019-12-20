@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/9/11 15:31
 # @Author  : floatsliang
-# @File    : utils.py
+# @File    : query.py
 import sys
 import copy
 import logging
 import inspect
-import re
 import datetime
 
+from .utils import FORMAL_DATE_PATTERN, NOW_DATE_PATTERN
 
 __all__ = ['Q', 'Match', 'Term', 'Terms', 'Range', 'Sort', 'Aggs', 'Highlight', 'Bool', 'Dsl']
 logger = logging.getLogger(__name__)
@@ -289,6 +289,36 @@ class Sort(Base):
         return self
 
 
+class WildCard(Base):
+
+    def __init__(self, q: dict = None, *args, **kwargs):
+        if q:
+            query = self._validate_query_field(q, kwargs.get('copied', False))
+            if len(query) == 1:
+                field, params = query.popitem()
+                kwargs = params
+            else:
+                raise ValueError(u'ERROR: {} can only have one field'.format(self.__class__))
+        else:
+            field = kwargs.get('field', None)
+            if not field:
+                raise AttributeError(u'ERROR: {} field cannot be empty'.format(self.__class__))
+        self['wildcard'] = {
+            field: {}
+        }
+        self._work_dir = self['wildcard'][field]
+        super(WildCard, self).__init__(*args, **kwargs)
+
+    def with_value(self, value):
+        self._work_dir['value'] = value
+        return self
+
+    def with_boost(self, boost: float = 1.0):
+        boost = float(boost)
+        self._work_dir['boost'] = boost
+        return self
+
+
 class Aggs(Base):
 
     def __init__(self, q: dict = None, *args, **kwargs):
@@ -297,15 +327,18 @@ class Aggs(Base):
         self._work_dir = self
         super(Base, self).__init__(*args, **kwargs)
 
-    def terms(self, field, name='', order_by='_count', order='asc'):
+    def terms(self, field, name='', order_by='_count', order='asc', size=None):
         if not name:
             name = "group_by_{}".format(field)
-        self._work_dir[name] = {
+        aggs = {
             "terms": {
                 "field": field,
                 "order": {order_by: order}
             }
         }
+        if size:
+            aggs['terms']['size'] = int(size)
+        self._work_dir[name] = aggs
         return self
 
     def metrics(self, field, name='', op='max'):
@@ -365,8 +398,6 @@ class Highlight(Base):
 
 
 class Bool(Base):
-    _FORMAL_DATE_PATTERN = re.compile(r'^(?P<year>\d{4})\D(?P<month>\d{2})\D(?P<day>\d{2}).*$')
-    _NOW_DATE_PATTERN = re.compile(r'^now((?P<op>[-+])(?P<num>\d+)(?P<unit>([yMwdhHms])))?\s*$')
 
     def __init__(self, q: dict = None, *args, **kwargs):
         self._debug = kwargs.get('debug', False)
@@ -402,9 +433,9 @@ class Bool(Base):
 
     @classmethod
     def parse_date(cls, date_str: str):
-        match_date = cls._FORMAL_DATE_PATTERN.match(date_str)
+        match_date = FORMAL_DATE_PATTERN.match(date_str)
         if not match_date:
-            match_date = cls._NOW_DATE_PATTERN.match(date_str)
+            match_date = NOW_DATE_PATTERN.match(date_str)
             if not match_date:
                 return None
             match_dict = match_date.groupdict()

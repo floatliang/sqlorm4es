@@ -4,6 +4,10 @@
 # @File    : utils.py
 from functools import wraps
 from copy import deepcopy
+import re
+
+FORMAL_DATE_PATTERN = re.compile(r'^(?P<year>\d{4})\D(?P<month>\d{2})\D(?P<day>\d{2}).*$')
+NOW_DATE_PATTERN = re.compile(r'^now((?P<op>[-+])(?P<num>\d+)(?P<unit>([yMwdhHms])))?\s*$')
 
 
 class SearchResult(dict):
